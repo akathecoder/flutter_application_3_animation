@@ -8,13 +8,15 @@ class TripList extends StatefulWidget {
 }
 
 class _TripListState extends State<TripList> {
-  List<Widget> _tripTiles = [];
-  final GlobalKey _listKey = GlobalKey();
+  List<Trip> _tripTiles = [];
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
   @override
   void initState() {
     super.initState();
-    _addTrips();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addTrips();
+    });
   }
 
   void _addTrips() {
@@ -27,53 +29,81 @@ class _TripListState extends State<TripList> {
       Trip(title: 'Space Blast', price: '600', nights: '4', img: 'space.png'),
     ];
 
-    _trips.forEach((Trip trip) {
-      _tripTiles.add(_buildTile(trip));
-    });
+    Future ft = Future(() {});
+    for (var trip in _trips) {
+      ft = ft.then((data) {
+        return Future.delayed(const Duration(milliseconds: 150), () {
+          _tripTiles.add(trip);
+          _listKey.currentState?.insertItem(_tripTiles.length - 1);
+        });
+      });
+    }
+
+    // _trips.forEach((Trip trip) {
+    //   _tripTiles.add(trip);
+    // });
   }
 
-  Widget _buildTile(Trip trip) {
-    return ListTile(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => Details(trip: trip)));
-      },
-      contentPadding: const EdgeInsets.all(25),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            '${trip.nights} nights',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[300],
+  final Animatable<Offset> _offset = Tween(
+    begin: const Offset(1, 0),
+    end: const Offset(0, 0),
+  ).chain(CurveTween(
+    curve: Curves.elasticInOut,
+  ));
+
+  Widget _buildTile({
+    required Trip trip,
+    required Animation<double> animation,
+  }) {
+    return SlideTransition(
+      position: animation.drive(_offset),
+      child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Details(trip: trip)),
+          );
+        },
+        contentPadding: const EdgeInsets.all(25),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '${trip.nights} nights',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[300],
+              ),
             ),
-          ),
-          Text(
-            trip.title,
-            style: TextStyle(fontSize: 20, color: Colors.grey[600]),
-          ),
-        ],
-      ),
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Image.asset(
-          'images/${trip.img}',
-          height: 50.0,
+            Text(
+              trip.title,
+              style: TextStyle(fontSize: 20, color: Colors.grey[600]),
+            ),
+          ],
         ),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: Image.asset(
+            'images/${trip.img}',
+            height: 50.0,
+          ),
+        ),
+        trailing: Text('\$${trip.price}'),
       ),
-      trailing: Text('\$${trip.price}'),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return AnimatedList(
         key: _listKey,
-        itemCount: _tripTiles.length,
-        itemBuilder: (context, index) {
-          return _tripTiles[index];
+        initialItemCount: _tripTiles.length,
+        itemBuilder: (context, index, animation) {
+          return _buildTile(
+            trip: _tripTiles[index],
+            animation: animation,
+          );
         });
   }
 }
