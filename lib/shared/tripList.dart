@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3_animation/models/Trip.dart';
 import 'package:flutter_application_3_animation/screens/details.dart';
+import 'package:flutter_application_3_animation/screens/home.dart';
 
 class TripList extends StatefulWidget {
+  final ViewModes viewmode;
+
+  const TripList({super.key, required this.viewmode});
+
   @override
   _TripListState createState() => _TripListState();
 }
@@ -55,6 +60,10 @@ class _TripListState extends State<TripList> {
     required Trip trip,
     required Animation<double> animation,
   }) {
+    double _width = widget.viewmode == ViewModes.list ? 50 : 100;
+    double height = 1;
+    bool full = false;
+
     return SlideTransition(
       position: animation.drive(_offset),
       child: ListTile(
@@ -65,37 +74,64 @@ class _TripListState extends State<TripList> {
           );
         },
         contentPadding: const EdgeInsets.all(25),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              '${trip.nights} nights',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[300],
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(seconds: 1),
+              width: _width,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Hero(
+                  tag: 'location-img-${trip.img}',
+                  createRectTween: (Rect? begin, Rect? end) {
+                    return MaterialRectCenterArcTween(begin: begin, end: end);
+                  },
+                  child: Image.asset(
+                    'images/${trip.img}',
+                  ),
+                ),
               ),
             ),
-            Text(
-              trip.title,
-              style: TextStyle(fontSize: 20, color: Colors.grey[600]),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${trip.nights} nights',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[300],
+                      ),
+                    ),
+                    Text(
+                      trip.title,
+                      style: TextStyle(fontSize: 20, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
             ),
+            Text('\$${trip.price}'),
           ],
         ),
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8.0),
-          child: Hero(
-            tag: 'location-img-${trip.img}',
-            createRectTween: (Rect? begin, Rect? end) {
-              return MaterialRectCenterArcTween(begin: begin, end: end);
-            },
-            child: Image.asset(
-              'images/${trip.img}',
-              height: 50.0,
-            ),
-          ),
-        ),
-        trailing: Text('\$${trip.price}'),
+        // leading: ClipRRect(
+        //   borderRadius: BorderRadius.circular(8.0),
+        //   child: Hero(
+        //     tag: 'location-img-${trip.img}',
+        //     createRectTween: (Rect? begin, Rect? end) {
+        //       return MaterialRectCenterArcTween(begin: begin, end: end);
+        //     },
+        //     child: Image.asset(
+        //       'images/${trip.img}',
+        //       height: 50.0,
+        //     ),
+        //   ),
+        // ),
+        // trailing: Text('\$${trip.price}'),
       ),
     );
   }

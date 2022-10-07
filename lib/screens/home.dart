@@ -7,7 +7,14 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
+enum ViewModes {
+  list,
+  grid,
+}
+
 class _HomeState extends State<Home> {
+  ViewModes _viewMode = ViewModes.list;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,8 +34,33 @@ class _HomeState extends State<Home> {
               height: 160,
               child: ScreenTitle(text: 'Ninja Trips'),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      _viewMode == ViewModes.grid
+                          ? Icons.grid_view_rounded
+                          : Icons.view_list_rounded,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (_viewMode == ViewModes.grid) {
+                          _viewMode = ViewModes.list;
+                        } else {
+                          _viewMode = ViewModes.grid;
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
             Flexible(
-              child: TripList(),
+              child: TripList(viewmode: _viewMode),
             )
             //Sandbox(),
           ],
